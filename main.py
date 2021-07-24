@@ -23,7 +23,7 @@ class employee(QWidget):
         self.ui.show()
         self.ui.btn_insert.clicked.connect(self.show_insertui)
         self.ui.btn_edit.clicked.connect(self.edit_employee)
-        # _______________filter_________________________________________
+        
         self.show_employee()
 
     def show_employee(self):
