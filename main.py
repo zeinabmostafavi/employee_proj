@@ -1,7 +1,8 @@
 import sys
 import os
 
-from PySide6.QtGui import QIcon
+from PySide6.QtGui import QIcon, QImage, QPixmap
+from PySide6 import QtGui
 from Database import Database
 import datetime
 from PySide6.QtWidgets import QApplication, QDialog, QLabel, QMessageBox, QPushButton, QWidget
@@ -9,8 +10,15 @@ from PySide6.QtCore import QFile, QSize
 from PySide6.QtUiTools import QUiLoader
 from functools import partial
 import cv2
-face_detector = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-my_video = cv2.VideoCapture(0)
+
+
+def convertCVImage2QtImage(cv_img):
+    cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
+    height, width, channel = cv_img.shape
+    bytesPerLine = 3 * width
+    qimg = QImage(cv_img.data, width, height,
+                  bytesPerLine, QImage.Format_RGB888)
+    return QPixmap.fromImage(qimg)
 
 
 class employee(QWidget):
@@ -19,11 +27,10 @@ class employee(QWidget):
 
         loader = QUiLoader()
         self.ui = loader.load("form.ui")
-        self.cameraui = loader.load("camera.ui")
         self.ui.show()
         self.ui.btn_insert.clicked.connect(self.show_insertui)
         self.ui.btn_edit.clicked.connect(self.edit_employee)
-        
+        # _______________main_________________________________________
         self.show_employee()
 
     def show_employee(self):
@@ -50,7 +57,9 @@ class employee(QWidget):
         insert()
 
     def edit_employee(self):
-        pass
+        edit = edit_show()
+        edit()
+
 
 # ________________________insert_____________________
 
@@ -121,27 +130,72 @@ class camera_show(QWidget):
         loader = QUiLoader()
         self.cameraui = loader.load("camera.ui")
         self.cameraui.show()
-        # self.ui.btn_insert.clicked.connect(self.show_insertui)
-        # self.ui.btn_edit.clicked.connect(self.edit_employee)
-        # _______________filter_________________________________________
 
     def camera(self):
-        self.cameraui.show()
+        face_cascade = cv2.CascadeClassifier(
+            cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+        video = cv2.VideoCapture(0)
         while True:
-            valdation, frame = my_video.read()
-            if valdation is not True:
+            validation, frame = video.read()
+            if validation is not True:
                 break
-            frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            faces = face_detector.detectMultiScale(frame_gray, 1.3)
-            for i, face in enumerate(faces):
-                x, y, w, h = face
-                cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 0, 0), 3)
-            image_frame = cv2.resize(frame, (h // 3, w // 3))
-            cv2.imshow('output', frame)
-            # self.cameraui.filter1.setIcon(QIcon('5.jpg'))
+            faces = face_cascade.detectMultiScale(frame, 1.3, 5)
+            for (x, y, w, h) in faces:
+                roi = frame[y:y + h, x:x + w]
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+            img = QtGui.QImage(
+                frame, frame.shape[1], frame.shape[0], QtGui.QImage.Format_RGB888)
+            pix = QtGui.QPixmap.fromImage(img)
+            self.cameraui.filter1.setIcon(QtGui.QIcon(pix))
+            self.cameraui.filter1.setIconSize(QSize(155, 155))
+
+            img2 = QtGui.QImage(
+                frame, frame.shape[1], frame.shape[0], QtGui.QImage.Format_ARGB6666_Premultiplied)
+            pix2 = QtGui.QPixmap.fromImage(img2)
+            self.cameraui.filter2.setIcon(QtGui.QIcon(pix2))
+            self.cameraui.filter2.setIconSize(QSize(151, 151))
+
+            img3 = QtGui.QImage(
+                frame, frame.shape[1], frame.shape[0], QtGui.QImage.Format_ARGB4444_Premultiplied)
+            pix3 = QtGui.QPixmap.fromImage(img3)
+            self.cameraui.filter3.setIcon(QtGui.QIcon(pix3))
+            self.cameraui.filter3.setIconSize(QSize(155, 155))
+
+            img4 = QtGui.QImage(
+                frame, frame.shape[1], frame.shape[0], QtGui.QImage.Format_ARGB8565_Premultiplied)
+            pix4 = QtGui.QPixmap.fromImage(img4)
+            self.cameraui.filter4.setIcon(QtGui.QIcon(pix4))
+            self.cameraui.filter4.setIconSize(QSize(155, 155))
+
+            img5 = QtGui.QImage(
+                frame, frame.shape[1], frame.shape[0], QtGui.QImage.Format_Grayscale16)
+            pix5 = QtGui.QPixmap.fromImage(img5)
+            self.cameraui.filter5.setIcon(QtGui.QIcon(pix5))
+            self.cameraui.filter5.setIconSize(QSize(155, 155))
+
+            img6 = QtGui.QImage(
+                frame, frame.shape[1], frame.shape[0], QtGui.QImage.Format_ARGB8555_Premultiplied)
+            pix6 = QtGui.QPixmap.fromImage(img6)
+            self.cameraui.filter6.setIcon(QtGui.QIcon(pix6))
+            self.cameraui.filter6.setIconSize(QSize(155, 155))
+
+            img7 = QtGui.QImage(
+                frame, frame.shape[1], frame.shape[0], QtGui.QImage.Format_RGBA8888)
+            pix7 = QtGui.QPixmap.fromImage(img7)
+            self.cameraui.filter7.setIcon(QtGui.QIcon(pix7))
+            self.cameraui.filter7.setIconSize(QSize(155, 155))
+
+            cv2.waitKey(30)
+
+   
+class edit_show(QWidget):
+    def __init__(self):
+        super(edit_show, self).__init__()
+
+        loader = QUiLoader()
+        self.editui = loader.load("form_edit.ui")
+        self.editui.show()
+        # self.ui.btn_edit.clicked.connect(self.edit_employee)
 
 
 if __name__ == "__main__":
